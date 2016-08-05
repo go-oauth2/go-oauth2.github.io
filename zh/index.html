@@ -3,12 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Golang OAuth2 Server Framework</title>
+    <title>OAuth2 Framework</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#157878">
+    <meta name="description" content="Golang OAuth2 Server Framework" />
+    <meta name="keywords" content="oauth 2.0, oauth2, oauth, golang oauth2,golang oauth 2.0" />
     <link rel="stylesheet" href="../css/normalize.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../css/font.css">
     <link rel="stylesheet" href="../css/cayman.css">
+    <link rel="stylesheet" href="../css/github.min.css">
 </head>
 
 <body>
@@ -16,18 +19,190 @@
         <h1 class="project-name">Golang OAuth2 Server Framework</h1>
         <h2 class="project-tagline">一个帮助您简单构建OAuth 2.0服务的框架</h2>
         <a href="https://github.com/go-oauth2/oauth2" class="btn">View on GitHub</a>
-        <a href="/" class="btn">英文文档</a>
+        <a href="/" class="btn">English Document</a>
     </section>
 
     <section class="main-content">
+        <h1>1. 开始使用</h1>
+
+        <h2>1.1 创建Manager实例</h2>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/manage"</p>
+        </blockquote>
+        <pre><code class="go">manager := manage.NewManager()</code></pre>
+
+        <h3>1.1.1 Manager的配置参数</h3>
+
+        <h4>1.1.1.1 SetAuthorizeCodeExp 设置授权码过期时间（默认为10分钟）</h4>
+        <pre><code class="go">manager.SetAuthorizeCodeExp(time.Minute * 10)</code></pre>
+
+        <h4>1.1.1.2 SetAuthorizeCodeTokenCfg 设置授权码模式令牌的配置参数</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+	// 访问令牌过期时间（默认为2小时）
+	AccessTokenExp: time.Hour * 2,
+	// 更新令牌过期时间（默认为72小时）
+	RefreshTokenExp: time.Hour * 24 * 3,
+	// 是否生成更新令牌（默认为true）
+	IsGenerateRefresh: true,
+}
+manager.SetAuthorizeCodeTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.3 SetImplicitTokenCfg 设置简化模式令牌的配置参数</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // 访问令牌过期时间（默认为1小时）
+    AccessTokenExp: time.Hour * 1,
+}
+manager.SetAuthorizeCodeTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.4 SetPasswordTokenCfg 设置密码模式令牌的配置参数</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+	// 访问令牌过期时间（默认为2小时）
+	AccessTokenExp: time.Hour * 2,
+	// 更新令牌过期时间（默认为7天）
+	RefreshTokenExp: time.Hour * 24 * 7,
+	// 是否生成更新令牌（默认为true）
+	IsGenerateRefresh: true,
+}
+manager.SetPasswordTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.5 SetClientTokenCfg 设置客户端模式令牌的配置参数</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // 访问令牌过期时间（默认为2小时）
+    AccessTokenExp: time.Hour * 2,
+}
+manager.SetClientTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.6 SetRefreshTokenCfg 设置更新令牌的配置参数</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // 是否重新生成更新令牌（默认为false）
+    IsGenerateRefresh: false,
+}
+manager.SetRefreshTokenCfg(cfg)
+        </code></pre>
+
+        <h3>1.1.2 Manager的接口映射</h3>
+
+        <h4>1.1.2.1 MapTokenModel 映射令牌模型接口</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/models"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapTokenModel(models.NewToken())</code></pre>
+
+        <h4>1.1.2.2 MapAuthorizeGenerate 映射授权码生成接口</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/generates"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapAuthorizeGenerate(generates.NewAuthorizeGenerate())</code></pre>
+
+        <h4>1.1.2.3 MapAccessGenerate 映射访问令牌生成接口</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/generates"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapAccessGenerate(generates.NewAccessGenerate())</code></pre>
+
+        <h4>1.1.2.4 MustTokenStorage 强制映射访问令牌存储接口</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/store"</p>
+        </blockquote>
+        <pre><code class="go">manager.MustTokenStorage(store.NewMemoryTokenStore())</code></pre>
+
+        <h4>1.1.2.5 MapClientStorage 映射客户端信息存储接口</h4>
+        <blockquote>
+            <p>客户端信息的存储，需要根据具体的业务场景来确定，这里暂不提供具体实现</p>
+        </blockquote>
+
+        <h2>1.2 创建Server实例</h2>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/server"</p>
+        </blockquote>
+        <pre><code class="go">srv := server.NewServer(server.NewConfig(), manager)</code></pre>
+
+        <h3>1.2.1 Server的配置参数</h3>
+        <h4>1.2.1.1 SetAllowedResponseType 设置允许的授权请求类型</h4>
+        <blockquote>
+            <p>支持的授权类型：Code(授权码),Token(授权令牌)</p>
+        </blockquote>
+
+        <h4>1.2.1.1 SetAllowedGrantType 设置允许的授权模式类型</h4>
+        <blockquote>
+            <p>支持的授权模式：AuthorizationCode(授权码模式),PasswordCredentials(密码模式),ClientCredentials(客户端模式),Refreshing(更新令牌)</p>
+        </blockquote>
+
+        <h3>1.2.2 Server的处理函数</h3>
+
+        <h4>1.2.2.1 SetClientInfoHandler 获取请求的客户端信息(默认支持：ClientFormHandler,ClientBasicHandler)</h4>
+        <pre><code class="go">ClientInfoHandler func(r *http.Request) (clientID, clientSecret string, err error)</code></pre>
+
+        <h4>1.2.2.2 SetClientAuthorizedHandler 检查是否允许该客户端通过该授权模式请求令牌</h4>
+        <pre><code class="go">ClientAuthorizedHandler func(clientID string, grant oauth2.GrantType) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.3 SetClientScopeHandler 检查该客户端所申请的权限范围</h4>
+        <pre><code class="go">ClientScopeHandler func(clientID, scope string) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.4 SetUserAuthorizationHandler 获取请求的用户标识</h4>
+        <pre><code class="go">UserAuthorizationHandler func(w http.ResponseWriter, r *http.Request) (userID string, err error)</code></pre>
+
+        <h4>1.2.2.5 SetPasswordAuthorizationHandler 根据请求的用户名和密码获取用户标识</h4>
+        <pre><code class="go">PasswordAuthorizationHandler func(username, password string) (userID string, err error)</code></pre>
+
+        <h4>1.2.2.6 SetRefreshingScopeHandler 检查更新令牌时，更新的权限范围</h4>
+        <pre><code class="go">RefreshingScopeHandler func(newScope, oldScope string) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.7 SetResponseErrorHandler 响应错误处理(支持自定义URI及错误明细)</h4>
+        <pre><code class="go">ResponseErrorHandler func(re *errors.Response)</code></pre>
+
+        <h4>1.2.2.8 SetInternalErrorHandler 内部错误处理</h4>
+        <pre><code class="go">InternalErrorHandler func(r *http.Request, err error)</code></pre>
+
+        <h4>1.2.2.9 SetExtensionFieldsHandler 自定义响应令牌的扩展字段</h4>
+        <pre><code class="go">ExtensionFieldsHandler func(ti oauth2.TokenInfo) (fieldsValue map[string]interface{})</code></pre>
+
+        <h4>1.2.2.10 SetAccessTokenExpHandler 自定义访问令牌的过期时间</h4>
+        <pre><code class="go">AccessTokenExpHandler func(w http.ResponseWriter, r *http.Request) (exp time.Duration, err error)</code></pre>
+
+        <h4>1.2.2.11 SetAuthorizeScopeHandler 自定义权限范围</h4>
+        <pre><code class="go">AuthorizeScopeHandler func(w http.ResponseWriter, r *http.Request) (scope string, err error)</code></pre>
+
+        <h2>1.3 创建HTTP监听服务</h2>
+
+        <h3>1.3.1 授权请求处理</h3>
+        <pre><code class="go">
+http.HandleFunc("/authorize", func(w http.ResponseWriter, r *http.Request) {
+	err := srv.HandleAuthorizeRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+})
+        </code></pre>
+
+        <h3>1.3.2 令牌请求处理</h3>
+        <pre><code class="go">
+http.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+	err := srv.HandleTokenRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+})
+        </code></pre>
 
         <footer class="site-footer">
-            <span class="site-footer-owner"><a href="https://github.com/jasonlong/cayman-theme">Cayman</a> is maintained by <a href="https://github.com/jasonlong">jasonlong</a>.</span>
             <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
         </footer>
 
     </section>
-
+    <script src="../js/highlight.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+    </script>
 </body>
 
 </html>

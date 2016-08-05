@@ -2,12 +2,13 @@
 <html lang="en-us">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Golang OAuth2 Server Framework</title>
+    <title>OAuth2 Framework</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#157878">
+    <meta name="description" content="Golang OAuth2 Server Framework" />
+    <meta name="keywords" content="oauth 2.0, oauth2, oauth, golang oauth2" />
     <link rel="stylesheet" href="css/normalize.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/font.css">
     <link rel="stylesheet" href="css/cayman.css">
 </head>
 
@@ -20,9 +21,178 @@
     </section>
 
     <section class="main-content">
+        <h1>1. Begin to use</h1>
+
+        <h2>1.1 Create a Manager instance</h2>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/manage"</p>
+        </blockquote>
+        <pre><code class="go">manager := manage.NewManager()</code></pre>
+
+        <h3>1.1.1 Manager of the configuration parameters</h3>
+
+        <h4>1.1.1.1 SetAuthorizeCodeExp set the authorization code expiration time</h4>
+        <pre><code class="go">manager.SetAuthorizeCodeExp(time.Minute * 10)</code></pre>
+
+        <h4>1.1.1.2 SetAuthorizeCodeTokenCfg set the authorization code grant token config</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // access token expiration time
+    AccessTokenExp: time.Hour * 2,
+    // refresh token expiration time
+    RefreshTokenExp: time.Hour * 24 * 3,
+    // whether to generate the refreshing token
+    IsGenerateRefresh: true,
+}
+manager.SetAuthorizeCodeTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.3 SetImplicitTokenCfg set the implicit grant token config</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // access token expiration time
+    AccessTokenExp: time.Hour * 1,
+}
+manager.SetAuthorizeCodeTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.4 SetPasswordTokenCfg set the password grant token config</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // access token expiration time
+    AccessTokenExp: time.Hour * 2,
+    // refresh token expiration time
+    RefreshTokenExp: time.Hour * 24 * 7,
+    // whether to generate the refreshing token
+    IsGenerateRefresh: true,
+}
+manager.SetPasswordTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.5 SetClientTokenCfg set the client grant token config</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // access token expiration time
+    AccessTokenExp: time.Hour * 2,
+}
+manager.SetClientTokenCfg(cfg)
+        </code></pre>
+
+        <h4>1.1.1.6 SetRefreshTokenCfg set the refreshing token config</h4>
+        <pre><code class="go">
+cfg := &manage.Config{
+    // whether to generate the refreshing token
+    IsGenerateRefresh: false,
+}
+manager.SetRefreshTokenCfg(cfg)
+        </code></pre>
+
+        <h3>1.1.2 The Manager of the interface map</h3>
+
+        <h4>1.1.2.1 MapTokenModel mapping the token information model</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/models"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapTokenModel(models.NewToken())</code></pre>
+
+        <h4>1.1.2.2 MapAuthorizeGenerate mapping the authorize code generate interface</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/generates"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapAuthorizeGenerate(generates.NewAuthorizeGenerate())</code></pre>
+
+        <h4>1.1.2.3 MapAccessGenerate mapping the access token generate interface</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/generates"</p>
+        </blockquote>
+        <pre><code class="go">manager.MapAccessGenerate(generates.NewAccessGenerate())</code></pre>
+
+        <h4>1.1.2.4 MustTokenStorage mandatory mapping the token store interface</h4>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/store"</p>
+        </blockquote>
+        <pre><code class="go">manager.MustTokenStorage(store.NewMemoryTokenStore())</code></pre>
+
+        <h4>1.1.2.5 MapClientStorage mapping the client store interface</h4>
+        <blockquote>
+            <p>Client information storage, need to be determined according to the specific business scenarios, here temporarily does not provide specific implementation</p>
+        </blockquote>
+
+        <h2>1.2 Create a Server instance</h2>
+        <blockquote>
+            <p>import "gopkg.in/oauth2.v3/server"</p>
+        </blockquote>
+        <pre><code class="go">srv := server.NewServer(server.NewConfig(), manager)</code></pre>
+
+        <h3>1.2.1 Server configuration parameters</h3>
+        <h4>1.2.1.1 SetAllowedResponseType allow the authorization types</h4>
+        <blockquote>
+            <p>The types of authorization support:Code,Token</p>
+        </blockquote>
+
+        <h4>1.2.1.1 SetAllowedGrantType allow the grant types</h4>
+        <blockquote>
+            <p>Support authorization model:AuthorizationCode,PasswordCredentials,ClientCredentials,Refreshing</p>
+        </blockquote>
+
+        <h3>1.2.2 Server processing function</h3>
+
+        <h4>1.2.2.1 SetClientInfoHandler get client info from request(The default support:ClientFormHandler,ClientBasicHandler)</h4>
+        <pre><code class="go">ClientInfoHandler func(r *http.Request) (clientID, clientSecret string, err error)</code></pre>
+
+        <h4>1.2.2.2 SetClientAuthorizedHandler check the client allows to use this authorization grant type</h4>
+        <pre><code class="go">ClientAuthorizedHandler func(clientID string, grant oauth2.GrantType) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.3 SetClientScopeHandler check the client allows to use scope</h4>
+        <pre><code class="go">ClientScopeHandler func(clientID, scope string) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.4 SetUserAuthorizationHandler get user id from request authorization</h4>
+        <pre><code class="go">UserAuthorizationHandler func(w http.ResponseWriter, r *http.Request) (userID string, err error)</code></pre>
+
+        <h4>1.2.2.5 SetPasswordAuthorizationHandler get user id from username and password</h4>
+        <pre><code class="go">PasswordAuthorizationHandler func(username, password string) (userID string, err error)</code></pre>
+
+        <h4>1.2.2.6 SetRefreshingScopeHandler check the scope of the refreshing token</h4>
+        <pre><code class="go">RefreshingScopeHandler func(newScope, oldScope string) (allowed bool, err error)</code></pre>
+
+        <h4>1.2.2.7 SetResponseErrorHandler response error handing</h4>
+        <pre><code class="go">ResponseErrorHandler func(re *errors.Response)</code></pre>
+
+        <h4>1.2.2.8 SetInternalErrorHandler internal error handing</h4>
+        <pre><code class="go">InternalErrorHandler func(r *http.Request, err error)</code></pre>
+
+        <h4>1.2.2.9 SetExtensionFieldsHandler in response to the access token with the extension of the field</h4>
+        <pre><code class="go">ExtensionFieldsHandler func(ti oauth2.TokenInfo) (fieldsValue map[string]interface{})</code></pre>
+
+        <h4>1.2.2.10 SetAccessTokenExpHandler set expiration date for the access token</h4>
+        <pre><code class="go">AccessTokenExpHandler func(w http.ResponseWriter, r *http.Request) (exp time.Duration, err error)</code></pre>
+
+        <h4>1.2.2.11 SetAuthorizeScopeHandler set the authorized scope</h4>
+        <pre><code class="go">AuthorizeScopeHandler func(w http.ResponseWriter, r *http.Request) (scope string, err error)</code></pre>
+
+        <h2>1.3 Create the HTTP listener service</h2>
+
+        <h3>1.3.1 The authorization request processing</h3>
+        <pre><code class="go">
+http.HandleFunc("/authorize", func(w http.ResponseWriter, r *http.Request) {
+    err := srv.HandleAuthorizeRequest(w, r)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+    }
+})
+        </code></pre>
+
+        <h3>1.3.2 The token request processing</h3>
+        <pre><code class="go">
+http.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+    err := srv.HandleTokenRequest(w, r)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+    }
+})
+        </code></pre>
 
         <footer class="site-footer">
-            <span class="site-footer-owner"><a href="https://github.com/jasonlong/cayman-theme">Cayman</a> is maintained by <a href="https://github.com/jasonlong">jasonlong</a>.</span>
             <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
         </footer>
 
