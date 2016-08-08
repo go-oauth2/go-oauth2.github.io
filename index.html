@@ -157,10 +157,10 @@ manager.SetRefreshTokenCfg(cfg)
         <pre><code class="go">RefreshingScopeHandler func(newScope, oldScope string) (allowed bool, err error)</code></pre>
 
         <h4>1.2.2.7 SetResponseErrorHandler response error handing</h4>
-        <pre><code class="go">ResponseErrorHandler func(re *errors.Response)</code></pre>
+        <pre><code class="go">ResponseErrorHandler func(err error) (re *errors.Response)</code></pre>
 
         <h4>1.2.2.8 SetInternalErrorHandler internal error handing</h4>
-        <pre><code class="go">InternalErrorHandler func(r *http.Request, err error)</code></pre>
+        <pre><code class="go">InternalErrorHandler func(err error)</code></pre>
 
         <h4>1.2.2.9 SetExtensionFieldsHandler in response to the access token with the extension of the field</h4>
         <pre><code class="go">ExtensionFieldsHandler func(ti oauth2.TokenInfo) (fieldsValue map[string]interface{})</code></pre>
